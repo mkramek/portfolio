@@ -1,0 +1,31 @@
+# VCS / build artifacts
+.git
+.gitignore
+node_modules
+.next
+generated
+*.tsbuildinfo
+next-env.d.ts
+
+# Secrets. Critical: Next copies .env into .next/standalone/ at build time, and
+# app/.env holds a real BETTER_AUTH_SECRET — this image is published publicly.
+.env
+.env.*
+
+# Test output and the saved admin session
+test-results
+playwright-report
+e2e/.auth
+
+# Deliberately NOT ignored: e2e/, tests/, playwright.config.ts, **/*.test.ts.
+# tsconfig.json's `include` covers them, so `next build` type-checks them as part of
+# the builder stage — dropping them here would break the build (playwright.config.ts
+# imports ./e2e/helpers/auth) and would also make the Docker build's type-check
+# input diverge from the CI `build` job's.
+
+# Docker + docs
+Dockerfile
+.dockerignore
+README.md
+AGENTS.md
+CLAUDE.md

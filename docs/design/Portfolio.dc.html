@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;--sans:'IBM Plex Sans',system-ui,sans-serif;--acL:.52;--acC:.115;--acH:196;--bg:#f1f0ec;--panel:#fbfbf9;--panel2:#e7e6e1;--fg:#131518;--dim:#65686d;--line:rgba(19,21,24,.14);--ac:oklch(var(--acL) var(--acC) var(--acH));--acFg:#fff;--acSoft:oklch(var(--acL) var(--acC) var(--acH)/.11)}
+[data-theme="dark"]{--acL:.83;--acC:.125;--bg:#0b0d0f;--panel:#121518;--panel2:#1a1e23;--fg:#e7e8e5;--dim:#8b9096;--line:rgba(231,232,229,.13);--acFg:#07242a;--acSoft:oklch(var(--acL) var(--acC) var(--acH)/.14);color-scheme:dark}
+[data-accent="amber"]{--acH:68}[data-accent="lime"]{--acH:138}[data-accent="violet"]{--acH:298}
+body{margin:0;background:#f1f0ec;font-family:var(--mono);-webkit-font-smoothing:antialiased}
+a{color:var(--ac);text-decoration:none;border-bottom:1px solid var(--acSoft)}
+a:hover{border-bottom-color:var(--ac)}
+[data-seg]{background:transparent;color:var(--dim);cursor:pointer}
+[data-seg]:hover{color:var(--fg)}
+[data-seg][data-on="1"]{background:var(--ac);color:var(--acFg)}
+[data-row]:hover{background:var(--acSoft)}
+[data-reveal]{transition:transform .3s cubic-bezier(.2,.7,.2,1),border-color .2s ease,background .2s ease}
+</style>
+<script src="./portfolio-store.js"></script>
+</helmet>
+<div data-theme="{{ mode }}" data-accent="{{ accent }}" style="min-height:100vh;background:var(--bg);color:var(--fg);font-family:var(--mono)">
+
+<div style="position:sticky;top:0;z-index:60;background:var(--bg);border-bottom:1px solid var(--line)">
+<div style="display:flex;align-items:center;gap:14px;max-width:1440px;margin:0 auto;padding:11px 24px">
+<div style="display:flex;align-items:center;gap:9px;min-width:0">
+<span style="display:grid;place-items:center;width:22px;height:22px;background:var(--fg);color:var(--bg);font:700 10px/1 var(--mono);letter-spacing:.02em">MK</span>
+<span style="font:500 12px/1 var(--mono);letter-spacing:.02em;white-space:nowrap">{{ profile.name }}</span>
+<span style="font:400 11px/1 var(--mono);color:var(--dim);white-space:nowrap">/ {{ profile.title }}</span>
+</div>
+<div style="flex:1"></div>
+<div style="display:flex;gap:3px;padding:3px;border:1px solid var(--line);border-radius:3px">
+<a data-seg data-on="1" href="Portfolio.dc.html" style="border:0;padding:6px 11px;border-radius:2px;font:500 10.5px/1 var(--mono);letter-spacing:.1em">PORTFOLIO</a>
+<a data-seg href="CV.dc.html" style="border:0;padding:6px 11px;border-radius:2px;font:500 10.5px/1 var(--mono);letter-spacing:.1em">CV</a>
+<a data-seg href="Admin.dc.html" style="border:0;padding:6px 11px;border-radius:2px;font:500 10.5px/1 var(--mono);letter-spacing:.1em">ADMIN</a>
+</div>
+<button onClick="{{ toggleMode }}" title="Toggle theme" style="background:transparent;color:var(--dim);border:1px solid var(--line);border-radius:3px;padding:6px 10px;font:500 10.5px/1 var(--mono);letter-spacing:.08em;cursor:pointer" style-hover="color:var(--fg);border-color:var(--fg)">{{ modeLabel }}</button>
+</div>
+</div>
+
+<main data-screen-label="Portfolio" style="max-width:1120px;margin:0 auto;padding:0 24px 120px">
+<sc-for list="{{ sections }}" as="s" hint-placeholder-count="4">
+<section id="{{ s.id }}" style="padding:64px 0 0;scroll-margin-top:70px">
+
+<sc-if value="{{ s.isHero }}" hint-placeholder-val="{{ true }}">
+<div>
+<sc-if value="{{ heroMonolith }}" hint-placeholder-val="{{ true }}">
+<div data-reveal>
+<div style="display:flex;align-items:center;gap:10px;font:400 11px/1 var(--mono);color:var(--dim);letter-spacing:.12em">
+<span style="width:7px;height:7px;border-radius:50%;background:var(--ac)"></span>{{ availabilityUpper }}
+</div>
+<h1 style="margin:22px 0 0;font:700 clamp(40px,7.4vw,92px)/0.94 var(--mono);letter-spacing:-.045em;text-wrap:balance">{{ profile.name }}</h1>
+<p style="margin:14px 0 0;font:500 clamp(15px,1.7vw,21px)/1.3 var(--mono);color:var(--ac);letter-spacing:-.01em">{{ profile.title }}</p>
+<p style="margin:26px 0 0;max-width:66ch;font:400 16px/1.65 var(--sans);color:var(--dim);text-wrap:pretty">{{ profile.tagline }}</p>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;margin:44px 0 0;background:var(--line);border:1px solid var(--line)">
+<sc-for list="{{ heroStats }}" as="m" hint-placeholder-count="4">
+<div style="background:var(--bg);padding:16px 18px">
+<div style="font:600 22px/1 var(--mono);letter-spacing:-.03em">{{ m.value }}</div>
+<div style="margin-top:7px;font:400 10.5px/1.3 var(--mono);color:var(--dim);letter-spacing:.06em">{{ m.label }}</div>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ heroTerminal }}">
+<div data-reveal style="border:1px solid var(--line);border-radius:5px;overflow:hidden;background:var(--panel)">
+<div style="display:flex;align-items:center;gap:8px;padding:9px 13px;border-bottom:1px solid var(--line);background:var(--panel2)">
+<span style="width:9px;height:9px;border-radius:50%;background:var(--line)"></span>
+<span style="width:9px;height:9px;border-radius:50%;background:var(--line)"></span>
+<span style="width:9px;height:9px;border-radius:50%;background:var(--ac)"></span>
+<span style="margin-left:6px;font:400 11px/1 var(--mono);color:var(--dim)">~/{{ profile.handle }} — zsh</span>
+</div>
+<div style="padding:26px 24px 30px;font:400 13.5px/1.85 var(--mono)">
+<div style="color:var(--dim)"><span style="color:var(--ac)">➜</span> whoami</div>
+<div style="font:700 clamp(28px,4.6vw,52px)/1.05 var(--mono);letter-spacing:-.04em;margin:6px 0 20px">{{ profile.name }}</div>
+<div style="color:var(--dim)"><span style="color:var(--ac)">➜</span> cat role.txt</div>
+<div style="margin:4px 0 20px">{{ profile.title }} · {{ profile.location }}</div>
+<div style="color:var(--dim)"><span style="color:var(--ac)">➜</span> head -4 summary.md</div>
+<p style="margin:6px 0 20px;max-width:72ch;font:400 13.5px/1.8 var(--mono);color:var(--fg);text-wrap:pretty">{{ profile.tagline }}</p>
+<div style="color:var(--dim)"><span style="color:var(--ac)">➜</span> status</div>
+<div style="margin:4px 0 0;color:var(--ac)">{{ profile.availability }}<span style="display:inline-block;width:8px;height:15px;background:var(--ac);margin-left:8px;vertical-align:-2px"></span></div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ heroLedger }}">
+<div data-reveal style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:48px;align-items:start">
+<div>
+<h1 style="margin:0;font:700 clamp(32px,4.6vw,58px)/1.02 var(--mono);letter-spacing:-.04em">{{ profile.name }}</h1>
+<p style="margin:16px 0 0;font:400 14px/1.7 var(--sans);color:var(--dim);max-width:42ch;text-wrap:pretty">{{ profile.tagline }}</p>
+<div style="display:inline-flex;align-items:center;gap:9px;margin:26px 0 0;padding:8px 12px;border:1px solid var(--ac);border-radius:3px;color:var(--ac);font:500 11px/1 var(--mono);letter-spacing:.06em">
+<span style="width:6px;height:6px;border-radius:50%;background:var(--ac)"></span>{{ profile.availability }}
+</div>
+</div>
+<div style="border-top:1px solid var(--line)">
+<sc-for list="{{ ledgerRows }}" as="m" hint-placeholder-count="6">
+<div style="display:grid;grid-template-columns:110px 1fr;gap:18px;padding:13px 0;border-bottom:1px solid var(--line)">
+<span style="font:400 10.5px/1.5 var(--mono);color:var(--dim);letter-spacing:.1em">{{ m.label }}</span>
+<span style="font:500 13px/1.5 var(--mono)">{{ m.value }}</span>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ s.isStrengths }}">
+<div>
+<div style="display:flex;align-items:baseline;gap:13px;margin:0 0 28px">
+<span style="font:600 11px/1 var(--mono);letter-spacing:.14em;color:var(--ac)">{{ s.num }}</span>
+<h2 style="margin:0;font:600 12.5px/1 var(--mono);letter-spacing:.18em;text-transform:uppercase">{{ s.label }}</h2>
+<div style="flex:1;height:1px;background:var(--line)"></div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px">
+<sc-for list="{{ strengths }}" as="k" hint-placeholder-count="3">
+<div data-reveal style="border:1px solid var(--line);border-radius:4px;padding:22px 20px 24px;background:var(--panel)" style-hover="border-color:var(--ac)">
+<div style="font:600 11px/1 var(--mono);color:var(--ac);letter-spacing:.1em">{{ k.tag }}</div>
+<h3 style="margin:14px 0 0;font:600 17px/1.25 var(--mono);letter-spacing:-.02em">{{ k.title }}</h3>
+<p style="margin:11px 0 0;font:400 13.5px/1.65 var(--sans);color:var(--dim);text-wrap:pretty">{{ k.body }}</p>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ s.isExperience }}">
+<div>
+<div style="display:flex;align-items:baseline;gap:13px;margin:0 0 30px">
+<span style="font:600 11px/1 var(--mono);letter-spacing:.14em;color:var(--ac)">{{ s.num }}</span>
+<h2 style="margin:0;font:600 12.5px/1 var(--mono);letter-spacing:.18em;text-transform:uppercase">{{ s.label }}</h2>
+<div style="flex:1;height:1px;background:var(--line)"></div>
+<span style="font:400 11px/1 var(--mono);color:var(--dim)">{{ roleCount }}</span>
+</div>
+
+<sc-if value="{{ timeRail }}" hint-placeholder-val="{{ true }}">
+<div>
+<sc-for list="{{ roles }}" as="r" hint-placeholder-count="4">
+<div data-reveal style="display:grid;grid-template-columns:132px minmax(0,1fr);gap:0 20px;align-items:start">
+<div style="text-align:right;padding-top:3px">
+<div style="font:500 11.5px/1.5 var(--mono)">{{ r.dates }}</div>
+<div style="font:400 10.5px/1.5 var(--mono);color:var(--dim)">{{ r.kind }}</div>
+</div>
+<div style="border-left:1px solid var(--line);padding:0 0 34px 26px;position:relative">
+<span style="position:absolute;left:-4px;top:6px;width:7px;height:7px;border-radius:50%;background:var(--ac)"></span>
+<div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:7px 12px">
+<h3 style="margin:0;font:600 17px/1.2 var(--mono);letter-spacing:-.025em">{{ r.company }}</h3>
+<span style="font:400 13px/1.3 var(--mono);color:var(--dim)">{{ r.title }}</span>
+<span style="font:600 9.5px/1 var(--mono);letter-spacing:.1em;padding:4px 6px;border:1px solid var(--line);border-radius:2px;color:var(--dim)">{{ r.depthLabel }}</span>
+</div>
+<p style="margin:9px 0 0;max-width:64ch;font:400 14px/1.62 var(--sans);text-wrap:pretty">{{ r.oneLiner }}</p>
+<sc-if value="{{ r.extended }}">
+<div>
+<div style="display:flex;flex-wrap:wrap;gap:26px;margin:16px 0 0">
+<sc-for list="{{ r.metrics }}" as="m" hint-placeholder-count="2">
+<div>
+<div style="font:600 16px/1 var(--mono);letter-spacing:-.02em;color:var(--ac)">{{ m.value }}</div>
+<div style="margin-top:5px;font:400 10.5px/1.3 var(--mono);color:var(--dim)">{{ m.label }}</div>
+</div>
+</sc-for>
+</div>
+<ul style="margin:15px 0 0;padding:0;list-style:none;display:grid;gap:6px">
+<sc-for list="{{ r.bullets }}" as="b" hint-placeholder-count="3">
+<li style="display:grid;grid-template-columns:14px 1fr;gap:8px;font:400 13.5px/1.6 var(--sans);color:var(--dim);max-width:70ch"><span style="color:var(--ac)">—</span><span>{{ b }}</span></li>
+</sc-for>
+</ul>
+<div style="display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0">
+<sc-for list="{{ r.stack }}" as="t" hint-placeholder-count="4">
+<span style="font:400 10.5px/1 var(--mono);padding:5px 8px;border:1px solid var(--line);border-radius:2px;color:var(--dim)">{{ t }}</span>
+</sc-for>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{ r.advanced }}">
+<div style="margin:18px 0 0">
+<button onClick="{{ r.onToggle }}" style="background:transparent;border:1px solid var(--ac);color:var(--ac);border-radius:3px;padding:7px 11px;font:500 10.5px/1 var(--mono);letter-spacing:.1em;cursor:pointer" style-hover="background:var(--acSoft)">{{ r.caseLabel }}</button>
+<sc-if value="{{ r.open }}">
+<div style="display:grid;gap:1px;margin:14px 0 0;background:var(--line);border:1px solid var(--line);border-radius:4px;overflow:hidden">
+<sc-for list="{{ r.caseRows }}" as="c" hint-placeholder-count="3">
+<div style="background:var(--panel);padding:16px 18px">
+<div style="font:600 10px/1 var(--mono);letter-spacing:.14em;color:var(--ac)">{{ c.label }}</div>
+<p style="margin:9px 0 0;font:400 13.5px/1.65 var(--sans);color:var(--fg);max-width:74ch;text-wrap:pretty">{{ c.text }}</p>
+</div>
+</sc-for>
+</div>
+</sc-if>
+</div>
+</sc-if>
+</div>
+</div>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ timeLedger }}">
+<div style="border-top:1px solid var(--line)">
+<sc-for list="{{ roles }}" as="r" hint-placeholder-count="4">
+<div data-reveal style="border-bottom:1px solid var(--line)">
+<div data-row onClick="{{ r.onToggle }}" style="display:grid;grid-template-columns:118px minmax(0,1.1fr) minmax(0,1.6fr) 70px;gap:20px;align-items:baseline;padding:16px 10px;cursor:pointer;transition:background .15s ease">
+<span style="font:400 11px/1.4 var(--mono);color:var(--dim)">{{ r.datesShort }}</span>
+<span style="font:600 14px/1.35 var(--mono);letter-spacing:-.02em">{{ r.company }}<span style="display:block;font:400 11px/1.5 var(--mono);color:var(--dim)">{{ r.title }}</span></span>
+<span style="font:400 13px/1.55 var(--sans);color:var(--dim);text-wrap:pretty">{{ r.oneLiner }}</span>
+<span style="justify-self:end;font:600 9.5px/1 var(--mono);letter-spacing:.1em;color:var(--ac)">{{ r.rowHint }}</span>
+</div>
+<sc-if value="{{ r.openDetail }}">
+<div style="padding:2px 10px 24px;display:grid;grid-template-columns:118px minmax(0,1fr);gap:20px">
+<div></div>
+<div>
+<div style="display:flex;flex-wrap:wrap;gap:24px">
+<sc-for list="{{ r.metrics }}" as="m" hint-placeholder-count="2">
+<div><div style="font:600 15px/1 var(--mono);color:var(--ac)">{{ m.value }}</div><div style="margin-top:5px;font:400 10.5px/1.3 var(--mono);color:var(--dim)">{{ m.label }}</div></div>
+</sc-for>
+</div>
+<ul style="margin:14px 0 0;padding:0;list-style:none;display:grid;gap:6px">
+<sc-for list="{{ r.bullets }}" as="b" hint-placeholder-count="3">
+<li style="display:grid;grid-template-columns:14px 1fr;gap:8px;font:400 13px/1.6 var(--sans);color:var(--dim);max-width:74ch"><span style="color:var(--ac)">—</span><span>{{ b }}</span></li>
+</sc-for>
+</ul>
+<div style="display:grid;gap:12px;margin:14px 0 0">
+<sc-for list="{{ r.caseRows }}" as="c" hint-placeholder-count="0">
+<div style="border-left:2px solid var(--ac);padding:2px 0 2px 14px">
+<div style="font:600 10px/1 var(--mono);letter-spacing:.14em;color:var(--ac)">{{ c.label }}</div>
+<p style="margin:8px 0 0;font:400 13px/1.65 var(--sans);max-width:74ch;text-wrap:pretty">{{ c.text }}</p>
+</div>
+</sc-for>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0">
+<sc-for list="{{ r.stack }}" as="t" hint-placeholder-count="4">
+<span style="font:400 10.5px/1 var(--mono);padding:5px 8px;border:1px solid var(--line);border-radius:2px;color:var(--dim)">{{ t }}</span>
+</sc-for>
+</div>
+</div>
+</div>
+</sc-if>
+</div>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ timeCards }}">
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px">
+<sc-for list="{{ roles }}" as="r" hint-placeholder-count="6">
+<div data-reveal style="border:1px solid var(--line);border-radius:4px;background:var(--panel);padding:20px 20px 22px;display:flex;flex-direction:column;gap:11px" style-hover="border-color:var(--ac)">
+<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px">
+<span style="font:400 10.5px/1 var(--mono);color:var(--dim)">{{ r.datesShort }}</span>
+<span style="font:600 9.5px/1 var(--mono);letter-spacing:.1em;color:var(--ac)">{{ r.depthLabel }}</span>
+</div>
+<h3 style="margin:0;font:600 16px/1.25 var(--mono);letter-spacing:-.025em">{{ r.company }}</h3>
+<div style="font:400 12px/1.4 var(--mono);color:var(--dim)">{{ r.title }} · {{ r.kind }}</div>
+<p style="margin:0;font:400 13.5px/1.6 var(--sans);color:var(--dim);text-wrap:pretty">{{ r.oneLiner }}</p>
+<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:auto;padding-top:6px">
+<sc-for list="{{ r.stack }}" as="t" hint-placeholder-count="3">
+<span style="font:400 10px/1 var(--mono);padding:4px 7px;background:var(--panel2);border-radius:2px;color:var(--dim)">{{ t }}</span>
+</sc-for>
+</div>
+</div>
+</sc-for>
+</div>
+</sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ s.isProjects }}">
+<div>
+<div style="display:flex;align-items:baseline;gap:13px;margin:0 0 28px">
+<span style="font:600 11px/1 var(--mono);letter-spacing:.14em;color:var(--ac)">{{ s.num }}</span>
+<h2 style="margin:0;font:600 12.5px/1 var(--mono);letter-spacing:.18em;text-transform:uppercase">{{ s.label }}</h2>
+<div style="flex:1;height:1px;background:var(--line)"></div>
+</div>
+
+<sc-if value="{{ projIndex }}" hint-placeholder-val="{{ true }}">
+<div style="border-top:1px solid var(--line)">
+<sc-for list="{{ projects }}" as="p" hint-placeholder-count="3">
+<div data-reveal data-row style="display:grid;grid-template-columns:44px minmax(0,1fr) minmax(0,1.5fr) auto;gap:20px;align-items:baseline;padding:20px 10px;border-bottom:1px solid var(--line);transition:background .15s ease">
+<span style="font:500 11px/1 var(--mono);color:var(--ac)">{{ p.num }}</span>
+<div>
+<div style="font:600 15px/1.25 var(--mono);letter-spacing:-.02em">{{ p.name }}</div>
+<div style="margin-top:5px;font:400 11px/1.4 var(--mono);color:var(--dim)">{{ p.role }} · {{ p.year }}</div>
+</div>
+<p style="margin:0;font:400 13.5px/1.6 var(--sans);color:var(--dim);text-wrap:pretty">{{ p.blurb }}</p>
+<span style="font:400 10.5px/1.5 var(--mono);color:var(--dim);text-align:right;max-width:180px">{{ p.stackLine }}</span>
+</div>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ projWindow }}">
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:18px">
+<sc-for list="{{ projects }}" as="p" hint-placeholder-count="3">
+<div data-reveal style="border:1px solid var(--line);border-radius:5px;overflow:hidden;background:var(--panel)" style-hover="border-color:var(--ac)">
+<div style="display:flex;align-items:center;gap:7px;padding:8px 12px;border-bottom:1px solid var(--line);background:var(--panel2)">
+<span style="width:8px;height:8px;border-radius:50%;background:var(--line)"></span>
+<span style="width:8px;height:8px;border-radius:50%;background:var(--line)"></span>
+<span style="width:8px;height:8px;border-radius:50%;background:var(--ac)"></span>
+<span style="margin-left:5px;font:400 10.5px/1 var(--mono);color:var(--dim)">{{ p.slug }}</span>
+</div>
+<div style="padding:20px 18px 22px">
+<h3 style="margin:0;font:600 16px/1.25 var(--mono);letter-spacing:-.025em">{{ p.name }}</h3>
+<div style="margin-top:6px;font:400 11px/1.4 var(--mono);color:var(--dim)">{{ p.role }} · {{ p.year }}</div>
+<p style="margin:13px 0 0;font:400 13.5px/1.62 var(--sans);color:var(--dim);text-wrap:pretty">{{ p.blurb }}</p>
+<div style="display:flex;flex-wrap:wrap;gap:5px;margin:15px 0 0">
+<sc-for list="{{ p.stack }}" as="t" hint-placeholder-count="3">
+<span style="font:400 10px/1 var(--mono);padding:4px 7px;border:1px solid var(--line);border-radius:2px;color:var(--dim)">{{ t }}</span>
+</sc-for>
+</div>
+</div>
+</div>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ projPlain }}">
+<div style="display:grid;gap:1px;background:var(--line);border:1px solid var(--line)">
+<sc-for list="{{ projects }}" as="p" hint-placeholder-count="3">
+<div data-reveal style="background:var(--bg);padding:26px 24px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:28px;align-items:start">
+<div>
+<h3 style="margin:0;font:600 clamp(18px,2.3vw,26px)/1.15 var(--mono);letter-spacing:-.03em">{{ p.name }}</h3>
+<div style="margin-top:9px;font:400 11px/1.5 var(--mono);color:var(--ac);letter-spacing:.06em">{{ p.role }} · {{ p.year }}</div>
+</div>
+<div>
+<p style="margin:0;font:400 14.5px/1.65 var(--sans);text-wrap:pretty">{{ p.blurb }}</p>
+<div style="margin:14px 0 0;font:400 11px/1.6 var(--mono);color:var(--dim)">{{ p.stackLine }}</div>
+</div>
+</div>
+</sc-for>
+</div>
+</sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ s.isSkills }}">
+<div>
+<div style="display:flex;align-items:baseline;gap:13px;margin:0 0 26px">
+<span style="font:600 11px/1 var(--mono);letter-spacing:.14em;color:var(--ac)">{{ s.num }}</span>
+<h2 style="margin:0;font:600 12.5px/1 var(--mono);letter-spacing:.18em;text-transform:uppercase">{{ s.label }}</h2>
+<div style="flex:1;height:1px;background:var(--line)"></div>
+</div>
+<div style="border-top:1px solid var(--line)">
+<sc-for list="{{ skills }}" as="g" hint-placeholder-count="5">
+<div data-reveal style="display:grid;grid-template-columns:170px minmax(0,1fr);gap:20px;padding:15px 0;border-bottom:1px solid var(--line);align-items:start">
+<span style="font:400 11px/1.6 var(--mono);color:var(--dim);letter-spacing:.08em">{{ g.group }}</span>
+<div style="display:flex;flex-wrap:wrap;gap:6px">
+<sc-for list="{{ g.items }}" as="t" hint-placeholder-count="5">
+<span style="font:500 11.5px/1 var(--mono);padding:6px 9px;background:var(--panel);border:1px solid var(--line);border-radius:2px" style-hover="border-color:var(--ac);color:var(--ac)">{{ t }}</span>
+</sc-for>
+</div>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ s.isTestimonials }}">
+<div>
+<div style="display:flex;align-items:baseline;gap:13px;margin:0 0 26px">
+<span style="font:600 11px/1 var(--mono);letter-spacing:.14em;color:var(--ac)">{{ s.num }}</span>
+<h2 style="margin:0;font:600 12.5px/1 var(--mono);letter-spacing:.18em;text-transform:uppercase">{{ s.label }}</h2>
+<div style="flex:1;height:1px;background:var(--line)"></div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px">
+<sc-for list="{{ testimonials }}" as="q" hint-placeholder-count="2">
+<div data-reveal style="border:1px solid var(--line);border-radius:4px;padding:22px 20px;background:var(--panel)">
+<p style="margin:0;font:400 14.5px/1.65 var(--sans);text-wrap:pretty">{{ q.quote }}</p>
+<div style="margin:16px 0 0;font:500 11.5px/1.5 var(--mono)">{{ q.author }}</div>
+<div style="font:400 11px/1.5 var(--mono);color:var(--dim)">{{ q.role }}</div>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ s.isContact }}">
+<div data-reveal style="border:1px solid var(--line);border-radius:5px;padding:34px 30px;background:var(--panel)">
+<div style="display:flex;flex-wrap:wrap;gap:32px;align-items:end;justify-content:space-between">
+<div>
+<div style="font:600 11px/1 var(--mono);letter-spacing:.14em;color:var(--ac)">{{ s.label }}</div>
+<h2 style="margin:16px 0 0;font:700 clamp(24px,3.4vw,38px)/1.08 var(--mono);letter-spacing:-.035em;max-width:24ch;text-wrap:balance">{{ profile.availability }}</h2>
+<div style="display:flex;flex-wrap:wrap;gap:18px;margin:22px 0 0;font:400 13px/1.6 var(--mono)">
+<a href="{{ mailto }}">{{ profile.email }}</a>
+<span style="color:var(--dim)">{{ profile.phone }}</span>
+<a href="{{ linkedinHref }}" target="_blank" rel="noreferrer">{{ profile.linkedin }}</a>
+<span style="color:var(--dim)">{{ profile.location }}</span>
+</div>
+</div>
+<a href="CV.dc.html" style="background:var(--ac);color:var(--acFg);border:0;border-radius:3px;padding:14px 20px;font:600 11.5px/1 var(--mono);letter-spacing:.1em" style-hover="opacity:.86">EXPORT MY EXPERIENCE TO A CV →</a>
+</div>
+</div>
+</sc-if>
+
+</section>
+</sc-for>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;mode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;'light'|'dark'&quot;,&quot;section&quot;:&quot;Look&quot;},&quot;accent&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;teal&quot;,&quot;amber&quot;,&quot;lime&quot;,&quot;violet&quot;],&quot;default&quot;:&quot;teal&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Look&quot;},&quot;hero&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;monolith&quot;,&quot;terminal&quot;,&quot;ledger&quot;],&quot;default&quot;:&quot;monolith&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Layout variants&quot;},&quot;timeline&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;rail&quot;,&quot;ledger&quot;,&quot;cards&quot;],&quot;default&quot;:&quot;rail&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Layout variants&quot;},&quot;project&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;index&quot;,&quot;window&quot;,&quot;plain&quot;],&quot;default&quot;:&quot;index&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Layout variants&quot;}}">
+class Component extends DCLogic {
+  state = { data: null, open: {} };
+
+  componentDidMount() { this.hydrate(); }
+  hydrate() {
+    const S = window.PortfolioStore;
+    if (!S) { setTimeout(() => this.hydrate(), 40); return; }
+    this.setState({ data: S.load() });
+  }
+  componentDidUpdate(prevProps) {
+    if (!this.state.data) return;
+    const keys = ['mode', 'accent', 'hero', 'timeline', 'project'];
+    const changed = keys.filter((k) => this.props[k] && prevProps[k] !== this.props[k] && this.state.data.theme[k] !== this.props[k]);
+    if (changed.length) this.mutate((d) => { changed.forEach((k) => { d.theme[k] = this.props[k]; }); });
+  }
+  mutate(fn) {
+    if (!this.state.data) return;
+    const d = JSON.parse(JSON.stringify(this.state.data));
+    fn(d);
+    window.PortfolioStore.save(d);
+    this.setState({ data: d });
+  }
+  th(k, fallback) { const t = (this.state.data || {}).theme || {}; return t[k] || this.props[k] || fallback; }
+
+  renderVals() {
+    const d = this.state.data || {};
+    const profile = d.profile || {};
+    const mode = this.th('mode', 'light');
+    const heroV = this.th('hero', 'monolith'), timeV = this.th('timeline', 'rail'), projV = this.th('project', 'index');
+
+    const roles = (d.roles || []).map((r) => {
+      const depth = r.depth || 'extended';
+      const open = !!this.state.open[r.id];
+      const caseRows = depth === 'advanced' ? [
+        { label: 'CONTEXT', text: (r.caseStudy || {}).context || '' },
+        { label: 'APPROACH', text: (r.caseStudy || {}).approach || '' },
+        { label: 'IMPACT', text: (r.caseStudy || {}).impact || '' }
+      ].filter((x) => x.text) : [];
+      return {
+        id: r.id, company: r.company, title: r.title, kind: r.kind, oneLiner: r.oneLiner,
+        dates: r.start + ' – ' + r.end, datesShort: r.start + ' – ' + r.end,
+        depthLabel: depth.toUpperCase(), extended: depth !== 'simple', advanced: depth === 'advanced' && caseRows.length > 0,
+        metrics: r.metrics || [], stack: r.stack || [], bullets: r.bullets || [], caseRows,
+        open, openDetail: open && depth !== 'simple', rowHint: open ? 'CLOSE' : (depth === 'simple' ? '' : 'OPEN'),
+        caseLabel: open ? '− CASE STUDY' : '+ CASE STUDY',
+        onToggle: () => this.setState({ open: Object.assign({}, this.state.open, { [r.id]: !this.state.open[r.id] }) })
+      };
+    });
+
+    return {
+      mode, accent: this.th('accent', 'teal'),
+      modeLabel: mode === 'dark' ? 'LIGHT' : 'DARK',
+      toggleMode: () => this.mutate((x) => { x.theme.mode = (x.theme.mode === 'dark' ? 'light' : 'dark'); }),
+      profile,
+      sections: (d.sections || []).filter((s) => s.visible).map((s, i) => ({
+        id: s.id, label: s.label, num: String(i + 1).padStart(2, '0'),
+        isHero: s.id === 'hero', isStrengths: s.id === 'strengths', isExperience: s.id === 'experience',
+        isProjects: s.id === 'projects', isSkills: s.id === 'skills', isTestimonials: s.id === 'testimonials', isContact: s.id === 'contact'
+      })),
+      strengths: d.strengths || [],
+      skills: (d.skills || []).map((g) => ({ group: g.group, items: g.items || [] })),
+      testimonials: d.testimonials || [],
+      roles, roleCount: (d.roles || []).length + ' ROLES',
+      projects: (d.projects || []).map((p, i) => ({
+        num: String(i + 1).padStart(2, '0'), name: p.name, role: p.role, year: p.year, blurb: p.blurb,
+        stack: p.stack || [], stackLine: (p.stack || []).join(' · '),
+        slug: String(p.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-') + '.md'
+      })),
+      availabilityUpper: (profile.availability || '').toUpperCase(),
+      mailto: 'mailto:' + (profile.email || ''),
+      linkedinHref: 'https://' + String(profile.linkedin || '').replace(/^https?:\/\//, ''),
+      heroStats: [
+        { value: '6+ yrs', label: 'COMMERCIAL EXPERIENCE' },
+        { value: '8,000+', label: 'DAILY USERS ON CURRENT PORTAL' },
+        { value: String((d.roles || []).length), label: 'ENGAGEMENTS DELIVERED' },
+        { value: 'TS / NODE', label: 'PRIMARY STACK' }
+      ],
+      ledgerRows: [
+        { label: 'ROLE', value: profile.title }, { label: 'BASED', value: profile.location },
+        { label: 'EXPERIENCE', value: '6+ years commercial' }, { label: 'CORE', value: 'TypeScript · React · Node.js · NestJS' },
+        { label: 'ALSO', value: 'Java / Spring Boot · Python · GraphQL · Web3' }, { label: 'INFRA', value: 'AWS · Docker · Kubernetes · PostgreSQL · Neo4J' },
+        { label: 'CONTACT', value: profile.email }
+      ],
+      heroMonolith: heroV === 'monolith', heroTerminal: heroV === 'terminal', heroLedger: heroV === 'ledger',
+      timeRail: timeV === 'rail', timeLedger: timeV === 'ledger', timeCards: timeV === 'cards',
+      projIndex: projV === 'index', projWindow: projV === 'window', projPlain: projV === 'plain'
+    };
+  }
+}
+</script>
+</body>
+</html>

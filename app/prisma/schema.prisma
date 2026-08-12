@@ -1,0 +1,296 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Profile {
+  id           String   @id @default("singleton")
+  name         String
+  handle       String
+  title        String
+  tagline      String?
+  summary      String
+  email        String
+  phone        String?
+  location     String?
+  linkedin     String?
+  github       String?
+  availability String?
+  heroStats    Json?
+  ledgerRows   Json?
+}
+
+model Role {
+  id          String    @id @default(cuid())
+  company     String
+  title       String
+  start       String
+  end         String
+  kind        String
+  location    String
+  depth       RoleDepth
+  oneLiner    String
+  bullets     Json
+  metrics     Json
+  stack       Json
+  caseStudy   Json
+  includeInCv Boolean   @default(true)
+  sortOrder   Int
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  name        String
+  role        String
+  year        String
+  blurb       String
+  stack       Json
+  link        String?
+  includeInCv Boolean  @default(true)
+  sortOrder   Int
+}
+
+model SkillGroup {
+  id        String @id @default(cuid())
+  group     String
+  items     Json
+  sortOrder Int
+}
+
+model Testimonial {
+  id          String   @id @default(cuid())
+  quote       String
+  author      String
+  role        String
+  includeInCv Boolean  @default(false)
+  sortOrder   Int
+}
+
+model Strength {
+  id        String @id @default(cuid())
+  tag       String
+  title     String
+  body      String
+  sortOrder Int
+}
+
+model Education {
+  id     String @id @default("singleton")
+  degree String
+  detail String
+}
+
+model Language {
+  id    String @id @default(cuid())
+  name  String
+  level String
+}
+
+model Section {
+  id        SectionId @id
+  label     String
+  visible   Boolean
+  sortOrder Int
+}
+
+model Theme {
+  id       String          @id @default("singleton")
+  mode     ThemeMode
+  accent   ThemeAccent
+  hero     HeroVariant
+  timeline TimelineVariant
+  project  ProjectVariant
+  admin    AdminVariant
+}
+
+model CvSettings {
+  id                  String @id @default("singleton")
+  company             String
+  position            String
+  summary             String
+  includeSkills       Boolean
+  includeProjects     Boolean
+  includeTestimonials Boolean
+  includeEducation    Boolean
+  includeLanguages    Boolean
+  locale              String @default("en")
+}
+
+model CvSnapshot {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  company   String
+  position  String
+  snapshot  Json
+  locale    String   @default("en")
+}
+
+/// A configured UI/content locale. Rows are created lazily on first admin toggle —
+/// absence merges with the in-code LOCALE_CATALOGUE (see lib/i18n/config.ts), same
+/// pattern as Theme/Section. "en" is always implicitly enabled and never gets a row
+/// disabling it (enforced in application code, not the schema).
+model Locale {
+  code      String  @id
+  enabled   Boolean
+  sortOrder Int
+}
+
+/// Sidecar translation store, keyed by (entity, entityId, locale). `values` is a
+/// partial JSON object of translated field values for that entity — missing or
+/// blank keys fall back to the English base value at read time (lib/i18n/localize.ts).
+/// A sidecar (rather than a column per table) means base tables stay untouched and a
+/// Section can be translated before its own row exists — see docs/arch/adr/013.
+model Translation {
+  entity    TranslatableEntity
+  entityId  String
+  locale    String
+  values    Json
+  updatedAt DateTime            @updatedAt
+
+  @@id([entity, entityId, locale])
+  @@index([locale])
+}
+
+model SetupState {
+  id         String   @id @default("singleton")
+  isComplete Boolean
+  updatedAt  DateTime @updatedAt
+}
+
+model User {
+  id            String    @id
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+  passkeys      Passkey[]
+}
+
+model Session {
+  id        String   @id
+  userId    String
+  expiresAt DateTime
+  token     String   @unique
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Account {
+  id                    String    @id
+  userId                String
+  accountId             String
+  providerId            String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, accountId])
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Passkey {
+  id           String   @id
+  name         String?
+  publicKey    String
+  userId       String
+  credentialID String   @unique
+  counter      Int
+  deviceType   String
+  backedUp     Boolean
+  transports   String?
+  createdAt    DateTime @default(now())
+  aaguid       String?
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+enum RoleDepth {
+  simple
+  extended
+  advanced
+}
+
+enum ThemeMode {
+  light
+  dark
+}
+
+enum ThemeAccent {
+  teal
+  amber
+  lime
+  violet
+}
+
+enum HeroVariant {
+  monolith
+  terminal
+  ledger
+}
+
+enum TimelineVariant {
+  rail
+  ledger
+  cards
+}
+
+enum ProjectVariant {
+  index
+  window
+  plain
+}
+
+enum AdminVariant {
+  split
+  stacked
+}
+
+enum SectionId {
+  hero
+  strengths
+  experience
+  projects
+  skills
+  testimonials
+  contact
+}
+
+enum TranslatableEntity {
+  profile
+  role
+  project
+  skillGroup
+  strength
+  testimonial
+  education
+  language
+  section
+  cvSettings
+}

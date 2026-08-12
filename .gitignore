@@ -1,0 +1,18 @@
+# Quartz docs site (own subproject — see quartz/.gitignore for its own rules)
+quartz/node_modules
+quartz/public
+
+# Next.js app (created per docs/impl/00-project-setup.md — its own subproject)
+app/node_modules
+app/.next
+app/.env
+app/.env.local
+
+# OS / editor
+.DS_Store
+
+# Raw personal content (extracted prototype sources — see ADR-007)
+docs/design/uploads
+
+# Working scratchpad, not part of the published project
+CONTEXT.md

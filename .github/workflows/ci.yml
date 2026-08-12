@@ -1,0 +1,247 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# PR pushes cancel their own stale runs. Runs on `main` never cancel — a cancellation
+# between the version job's `git push` and its `gh workflow run` would leave a bumped
+# app/package.json on main with no image ever built for it.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  # app/bun.lock is lockfileVersion 2, which no stable Bun release (1.3.x, as of
+  # writing) can parse — confirmed empirically. `canary` is the channel this project
+  # is actually developed against locally and the only one that reads this lockfile;
+  # revisit once Bun 1.4 ships stable. See app/Dockerfile for the same pin and the
+  # fuller note.
+  BUN_VERSION: "canary"
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('app/bun.lock') }}
+          restore-keys: bun-${{ runner.os }}-
+
+      # Runs the "postinstall": "prisma generate" script — app/generated/ is
+      # gitignored, and several modules import from @/generated/prisma.
+      - run: bun install --frozen-lockfile
+
+      # `biome ci` is Biome's non-mutating CI mode: it fails on anything that would
+      # need `--write` instead of silently fixing it. Do not substitute
+      # `biome check --write` here. Covers both linting and formatting (ADR-008).
+      - run: bunx biome ci .
+
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('app/bun.lock') }}
+          restore-keys: bun-${{ runner.os }}-
+
+      - run: bun install --frozen-lockfile
+
+      # No TEST_DATABASE_URL -> tests/preload.ts supplies a dummy DATABASE_URL and
+      # the DB-backed cases in lib/cv.test.ts self-skip. bunfig.toml already excludes
+      # e2e/**, so this never touches Playwright specs.
+      - run: bun test
+
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('app/bun.lock') }}
+          restore-keys: bun-${{ runner.os }}-
+
+      - run: bun install --frozen-lockfile
+
+      # This is the type-check job too: there is no separate `tsc --noEmit` script
+      # (deliberate — see docs/arch/10-ci-cd.md). `next build` type-checks everything
+      # under tsconfig's `include`, which covers e2e/ and playwright.config.ts as well.
+      - run: bun run build
+
+  version:
+    name: version
+    needs: [lint, test, build]
+    if: >-
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main' &&
+      !contains(github.event.head_commit.message, '[skip ci]')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read        # checkout uses the PAT below, not GITHUB_TOKEN
+      pull-requests: read   # for the commits/{sha}/pulls lookup
+      actions: write        # for `gh workflow run build.yml`
+    concurrency:
+      group: version-bump-main
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          # Owner-scoped fine-grained PAT (repo secret VERSION_BUMP_TOKEN). main has
+          # branch protection requiring a PR; GITHUB_TOKEN authenticates as
+          # github-actions[bot], which is a Write collaborator but not an admin, so it
+          # cannot push past that rule. A PAT owned by the repo admin can, via
+          # `enforce_admins: false` on the branch protection — no bypass-actor
+          # configuration needed. See docs/impl/10-ci-cd.md for the full rationale.
+          token: ${{ secrets.VERSION_BUMP_TOKEN }}
+
+      - name: Resolve source branch and bump type
+        id: resolve
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Never interpolate a commit message directly into `run:` — script injection.
+          HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+        run: |
+          set -euo pipefail
+
+          # Primary: ask the API which PR this commit belongs to. This is the only
+          # method that works for all three merge styles — merge commit, squash
+          # merge, and rebase merge — because GitHub records the association on the
+          # resulting commit regardless of how it was produced.
+          branch="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/pulls" \
+                      --jq '.[0].head.ref // empty' 2>/dev/null || true)"
+
+          # Fallback: a classic merge commit's subject line.
+          #   "Merge pull request #12 from mkramek/feat/thing"
+          if [ -z "$branch" ]; then
+            subject="${HEAD_COMMIT_MESSAGE%%$'\n'*}"
+            case "$subject" in
+              "Merge pull request #"*" from "*)
+                rest="${subject#*" from "}"
+                rest="${rest%% *}"        # drop anything after the ref
+                branch="${rest#*/}"       # drop the leading owner/
+                ;;
+            esac
+          fi
+
+          # Final fallback: a direct admin push, or a PR association that has not
+          # propagated yet. Not an error — just nothing to version.
+          if [ -z "$branch" ]; then
+            echo "::notice::No source branch resolved for ${GITHUB_SHA}; skipping bump."
+            printf 'bump=none\nbranch=\n' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          lower="${branch,,}"          # case-insensitive
+          prefix="${lower%%[/_-]*}"    # first token before / _ or -
+
+          # Exact token match, never substring. This is what makes `feat` vs
+          # `feature` and `fix` vs `hotfix`/`bugfix` safe: each spelling is listed
+          # explicitly, and e.g. `prefix-work/x` yields the token `prefix`, which
+          # falls through to `none` instead of being caught by a `*fix*` glob.
+          case "$prefix" in
+            hotfix|bugfix|fix) bump=patch ;;
+            feat|feature)      bump=minor ;;
+            release|rel)       bump=major ;;
+            *)                 bump=none  ;;
+          esac
+
+          echo "Source branch '${branch}' -> prefix '${prefix}' -> bump '${bump}'"
+          {
+            echo "branch=${branch}"
+            echo "prefix=${prefix}"
+            echo "bump=${bump}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Bump version
+        id: bump
+        if: steps.resolve.outputs.bump != 'none'
+        working-directory: app
+        env:
+          BUMP: ${{ steps.resolve.outputs.bump }}
+        run: |
+          set -euo pipefail
+          old="$(jq -r .version package.json)"
+          # npm ships on ubuntu-latest. --no-git-tag-version makes this a pure
+          # package.json rewrite: no commit, no tag, no git-cleanliness precondition.
+          new="$(npm version "$BUMP" --no-git-tag-version)"
+          new="${new#v}"
+          echo "${old} -> ${new}"
+          {
+            echo "old=${old}"
+            echo "version=${new}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Commit and push
+        id: push
+        if: steps.resolve.outputs.bump != 'none'
+        env:
+          NEW_VERSION: ${{ steps.bump.outputs.version }}
+          SOURCE_BRANCH: ${{ steps.resolve.outputs.branch }}
+        run: |
+          set -euo pipefail
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/package.json
+          git diff --cached --quiet && { echo "::error::package.json unchanged"; exit 1; }
+          # [skip ci] matters: this push is authored by a PAT, and (unlike
+          # GITHUB_TOKEN) PAT-authored pushes DO trigger workflows. GitHub honours
+          # the marker natively for push events, and this job's own `if:` guards it
+          # a second time as a fallback.
+          git commit -m "chore(release): v${NEW_VERSION} [skip ci]" \
+                     -m "Bumped from ${SOURCE_BRANCH}."
+          git push origin HEAD:main
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Trigger image build
+        if: steps.resolve.outputs.bump != 'none'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.bump.outputs.version }}
+          SHA: ${{ steps.push.outputs.sha }}
+        run: |
+          set -euo pipefail
+          gh workflow run build.yml \
+            --repo "${GITHUB_REPOSITORY}" \
+            --ref main \
+            -f version="${VERSION}" \
+            -f sha="${SHA}"
+          echo "::notice::Dispatched build.yml for v${VERSION} @ ${SHA}"

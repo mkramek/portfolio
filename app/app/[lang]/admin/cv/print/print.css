@@ -1,0 +1,35 @@
+@page {
+  size: A4;
+  margin: 0;
+}
+
+.cv-sheet {
+  width: 210mm;
+  min-height: 297mm;
+  margin: 28px auto 64px;
+  padding: 0.55in;
+  background: #fff;
+  color: #000;
+  box-shadow: 0 2px 14px rgba(20, 20, 19, 0.14);
+  box-sizing: border-box;
+}
+
+@media print {
+  body {
+    margin: 0;
+    padding: 0;
+    background: #fff;
+  }
+
+  .cv-sheet {
+    width: auto;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+  }
+
+  .cv-entry {
+    break-inside: avoid;
+  }
+}

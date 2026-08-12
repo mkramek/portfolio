@@ -1,0 +1,13 @@
+{
+  "name": "mk-cv-portfolio",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "docs:serve": "cd quartz && bun run quartz build --serve",
+    "docs:build": "cd quartz && bun run quartz build"
+  },
+  "engines": {
+    "bun": ">=1.1.0"
+  }
+}

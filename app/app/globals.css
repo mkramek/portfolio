@@ -1,0 +1,71 @@
+@import "tailwindcss";
+
+:root {
+  --mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  --sans: var(--font-ibm-plex-sans), system-ui, sans-serif;
+  --acL: 0.52;
+  --acC: 0.115;
+  --acH: 196;
+  --bg: #f1f0ec;
+  --panel: #fbfbf9;
+  --panel2: #e7e6e1;
+  --fg: #131518;
+  --dim: #65686d;
+  --line: rgba(19, 21, 24, 0.14);
+  --ac: oklch(var(--acL) var(--acC) var(--acH));
+  --acFg: #ffffff;
+  --acSoft: oklch(var(--acL) var(--acC) var(--acH) / 0.11);
+}
+
+[data-theme="dark"] {
+  --acL: 0.83;
+  --acC: 0.125;
+  --bg: #0b0d0f;
+  --panel: #121518;
+  --panel2: #1a1e23;
+  --fg: #e7e8e5;
+  --dim: #8b9096;
+  --line: rgba(231, 232, 229, 0.13);
+  --acFg: #07242a;
+  --acSoft: oklch(var(--acL) var(--acC) var(--acH) / 0.14);
+  color-scheme: dark;
+}
+
+[data-accent="amber"] {
+  --acH: 68;
+}
+
+[data-accent="lime"] {
+  --acH: 138;
+}
+
+[data-accent="violet"] {
+  --acH: 298;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-panel: var(--panel);
+  --color-panel2: var(--panel2);
+  --color-fg: var(--fg);
+  --color-dim: var(--dim);
+  --color-line: var(--line);
+  --color-ac: var(--ac);
+  --color-acfg: var(--acFg);
+  --color-acsoft: var(--acSoft);
+  --font-mono: var(--mono);
+  --font-sans: var(--sans);
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--mono);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--ac);
+  text-decoration: none;
+  border-bottom: 1px solid var(--acSoft);
+}

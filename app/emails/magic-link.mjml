@@ -1,0 +1,37 @@
+<mjml>
+  <mj-head>
+    <mj-attributes>
+      <mj-all font-family="Helvetica, Arial, sans-serif" color="#131518" />
+      <mj-text font-size="15px" line-height="1.6" />
+    </mj-attributes>
+  </mj-head>
+  <mj-body background-color="#f1f0ec" width="520px">
+    <mj-section background-color="#fbfbf9" padding="32px 36px" border-radius="12px">
+      <mj-column>
+        <mj-text font-size="13px" font-weight="600" letter-spacing="1px" text-transform="uppercase" color="#65686d">
+          CV admin
+        </mj-text>
+        <mj-text font-size="22px" font-weight="700" padding-top="8px" padding-bottom="0">
+          Sign in to the admin panel
+        </mj-text>
+        <mj-text>Use this link to sign in. It expires in 10 minutes and can only be used once.</mj-text>
+        <mj-button href="{{URL}}" background-color="#0f766e" color="#ffffff" border-radius="8px" padding="12px 20px">
+          Sign in
+        </mj-button>
+        <mj-text font-size="13px" color="#65686d" padding-top="24px">
+          If the button doesn't work, copy this link into your browser:
+        </mj-text>
+        <mj-text font-size="13px" color="#65686d" padding-top="4px">
+          <a href="{{URL}}" style="color:#0f766e;word-break:break-all">{{URL}}</a>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section padding="16px 0 0 0">
+      <mj-column>
+        <mj-text align="center" font-size="12px" color="#65686d">
+          If you didn't request this, you can safely ignore this email.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>
