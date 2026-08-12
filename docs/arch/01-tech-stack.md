@@ -18,7 +18,7 @@ tags:
 | Database | **Postgres** (Neon or Vercel Postgres) | Serverless-compatible; see [[../arch/adr/001-database-postgres|ADR-001]] |
 | ORM | **Prisma** | Schema-first migrations, good Vercel/serverless connection pooling story (Prisma Accelerate or PgBouncer) |
 | Auth | **Better Auth** | `magicLink`, `emailOTP`, `passkey` plugins; see [[../arch/adr/002-auth-library-better-auth\|ADR-002]] and [[03-auth]] |
-| Email delivery | **SMTP or Gmail XOAUTH2** | Nodemailer, selected at runtime by `MAIL_TRANSPORT`, sending pre-rendered HTML; see [[../arch/adr/015-gmail-xoauth2-transport\|ADR-015]] |
+| Email delivery | **SMTP, Gmail XOAUTH2, or Mailgun HTTP API** | Selected at runtime by `MAIL_TRANSPORT`, sending pre-rendered HTML; see [[../arch/adr/015-gmail-xoauth2-transport\|ADR-015]] and [[../arch/adr/016-mailgun-http-api-transport\|ADR-016]] |
 | Email templating | **MJML** | Compiled to HTML at build/send time, not hand-written HTML email markup |
 | PDF generation | **playwright-core + @sparticuz/chromium** | Runs inside a Next.js Route Handler on Vercel; see [[../arch/adr/004-serverless-pdf-generation\|ADR-004]] and [[05-cv-generation]] |
 | Validation | **Zod** | Schemas shared by admin forms, API route input validation, and the setup-completeness gate |

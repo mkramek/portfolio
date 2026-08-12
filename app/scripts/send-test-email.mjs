@@ -19,7 +19,7 @@ loadEnv({ path: join(here, "..", ".env"), quiet: true });
 // Bun applies tsconfig paths to .mjs files. (lib/email.ts's own "@/lib/emails" import
 // resolves normally — that one is .ts-to-.ts inside app/.)
 const {
-  buildTransportOptions,
+  describeMailTransport,
   readMailEnv,
   resolveFromAddress,
   resolveMailTransportKind,
@@ -30,10 +30,10 @@ const {
 const env = readMailEnv();
 
 let kind;
-let options;
+let server;
 try {
   kind = resolveMailTransportKind(env);
-  options = buildTransportOptions(env);
+  server = describeMailTransport(env);
 } catch (error) {
   console.error(`config    : FAILED\n${error instanceof Error ? error.message : String(error)}`);
   process.exit(1);
@@ -47,9 +47,7 @@ if (to === "") {
 }
 
 console.log(`transport : ${kind}`);
-console.log(
-  `server    : ${options.host}:${options.port}${options.secure === true ? " (TLS)" : ""}`,
-);
+console.log(`server    : ${server}`);
 console.log(`from      : ${from}`);
 console.log(`to        : ${to}`);
 if (warning !== undefined) console.warn(`warning   : ${warning}`);

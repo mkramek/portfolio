@@ -26,10 +26,11 @@ Managed Postgres — **Neon** or **Vercel Postgres** (either is compatible with 
 | `DIRECT_DATABASE_URL` | Direct (non-pooled) connection string, if the provider requires a separate one for migrations |
 | `ADMIN_EMAIL` | The one email address allowed to authenticate — see [[03-auth]] |
 | `BETTER_AUTH_SECRET` | Session signing secret |
-| `MAIL_TRANSPORT` | `smtp` (default) or `gmail-oauth` — selects the outbound mail transport, see [[adr/015-gmail-xoauth2-transport\|ADR-015]] |
+| `MAIL_TRANSPORT` | `smtp` (default), `gmail-oauth`, or `mailgun` — selects the outbound mail transport, see [[adr/015-gmail-xoauth2-transport\|ADR-015]] and [[adr/016-mailgun-http-api-transport\|ADR-016]] |
 | `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` | Outbound mail for magic link / OTP emails, when `MAIL_TRANSPORT=smtp` |
 | `SMTP_FROM` | From address for auth emails, when `MAIL_TRANSPORT=smtp` |
 | `GMAIL_USER` / `GMAIL_CLIENT_ID` / `GMAIL_CLIENT_SECRET` / `GMAIL_REFRESH_TOKEN` | Gmail XOAUTH2 credentials, read only when `MAIL_TRANSPORT=gmail-oauth` — see [[../impl/09-deployment|impl: deployment]] § Gmail XOAUTH2 |
+| `MAILGUN_API_KEY` / `MAILGUN_DOMAIN` / `MAILGUN_FROM` / `MAILGUN_REGION` | Mailgun HTTP API credentials, read only when `MAIL_TRANSPORT=mailgun` — see [[../impl/09-deployment|impl: deployment]] § Mailgun HTTP API |
 
 Exact naming may shift slightly once Better Auth and the chosen Postgres provider's own conventions are wired up in implementation — treat this table as the intent, not a literal contract.
 

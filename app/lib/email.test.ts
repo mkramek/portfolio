@@ -1,6 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import {
+  buildMailgunConfig,
   buildTransportOptions,
+  describeMailTransport,
   type MailEnv,
   readMailEnv,
   resolveFromAddress,
@@ -20,9 +22,13 @@ describe("resolveMailTransportKind", () => {
     expect(resolveMailTransportKind({ MAIL_TRANSPORT: "  GMAIL-OAUTH " })).toBe("gmail-oauth");
   });
 
-  test("rejects an unknown value, naming it and both valid options", () => {
+  test("accepts mailgun, trimmed and case-insensitive", () => {
+    expect(resolveMailTransportKind({ MAIL_TRANSPORT: " Mailgun " })).toBe("mailgun");
+  });
+
+  test("rejects an unknown value, naming it and all valid options", () => {
     expect(() => resolveMailTransportKind({ MAIL_TRANSPORT: "sendgrid" })).toThrow(
-      /sendgrid.*smtp.*gmail-oauth/,
+      /sendgrid.*smtp.*gmail-oauth.*mailgun/,
     );
   });
 });
@@ -110,6 +116,69 @@ describe("buildTransportOptions — gmail-oauth", () => {
     };
     expect(() => buildTransportOptions(env)).toThrow();
   });
+
+  test("refuses to build SMTP options for mailgun", () => {
+    expect(() => buildTransportOptions({ MAIL_TRANSPORT: "mailgun" })).toThrow(
+      /buildMailgunConfig/,
+    );
+  });
+});
+
+const MAILGUN_ENV: MailEnv = {
+  MAIL_TRANSPORT: "mailgun",
+  MAILGUN_API_KEY: "key-abc",
+  MAILGUN_DOMAIN: "mg.example.com",
+  MAILGUN_FROM: "CV Admin <admin@mg.example.com>",
+};
+
+describe("buildMailgunConfig", () => {
+  test("builds a full config, defaulting region to us", () => {
+    expect(buildMailgunConfig(MAILGUN_ENV)).toEqual({
+      apiKey: "key-abc",
+      domain: "mg.example.com",
+      from: "CV Admin <admin@mg.example.com>",
+      region: "us",
+    });
+  });
+
+  test("honours an explicit eu region, trimmed and case-insensitive", () => {
+    const env = { ...MAILGUN_ENV, MAILGUN_REGION: " EU " };
+    expect(buildMailgunConfig(env).region).toBe("eu");
+  });
+
+  test("rejects an invalid region", () => {
+    const env = { ...MAILGUN_ENV, MAILGUN_REGION: "asia" };
+    expect(() => buildMailgunConfig(env)).toThrow(/asia.*us.*eu/);
+  });
+
+  test("throws naming a single missing var", () => {
+    const env = { ...MAILGUN_ENV, MAILGUN_FROM: undefined };
+    expect(() => buildMailgunConfig(env)).toThrow(/MAILGUN_FROM/);
+    expect(() => buildMailgunConfig(env)).not.toThrow(/MAILGUN_DOMAIN/);
+  });
+
+  test("throws naming all missing vars", () => {
+    const env = { ...MAILGUN_ENV, MAILGUN_API_KEY: undefined, MAILGUN_FROM: undefined };
+    expect(() => buildMailgunConfig(env)).toThrow(/MAILGUN_API_KEY.*MAILGUN_FROM/);
+  });
+
+  test("whitespace-only value counts as missing", () => {
+    const env = { ...MAILGUN_ENV, MAILGUN_DOMAIN: "   " };
+    expect(() => buildMailgunConfig(env)).toThrow(/MAILGUN_DOMAIN/);
+  });
+
+  test("does not silently fall back to a Mailpit-shaped config", () => {
+    const env: MailEnv = {
+      MAIL_TRANSPORT: "mailgun",
+      SMTP_HOST: "127.0.0.1",
+      SMTP_PORT: "1025",
+    };
+    expect(() => buildMailgunConfig(env)).toThrow();
+  });
+
+  test("refuses to build when the transport kind is not mailgun", () => {
+    expect(() => buildMailgunConfig({})).toThrow(/MAIL_TRANSPORT=mailgun/);
+  });
 });
 
 describe("resolveFromAddress", () => {
@@ -146,6 +215,33 @@ describe("resolveFromAddress", () => {
     expect(result.from).toBe("me@gmail.com");
     expect(result.warning).toBeDefined();
   });
+
+  test("mailgun uses MAILGUN_FROM verbatim, no warning", () => {
+    expect(resolveFromAddress(MAILGUN_ENV)).toEqual({
+      from: "CV Admin <admin@mg.example.com>",
+    });
+  });
+});
+
+describe("describeMailTransport", () => {
+  test("smtp", () => {
+    expect(describeMailTransport({ SMTP_HOST: "mail.example.com", SMTP_PORT: "587" })).toBe(
+      "mail.example.com:587",
+    );
+  });
+
+  test("gmail-oauth includes TLS", () => {
+    expect(describeMailTransport(GMAIL_ENV)).toBe("smtp.gmail.com:465 (TLS)");
+  });
+
+  test("mailgun describes the HTTP API endpoint, region-aware", () => {
+    expect(describeMailTransport(MAILGUN_ENV)).toBe(
+      "https://api.mailgun.net/v3/mg.example.com/messages",
+    );
+    expect(describeMailTransport({ ...MAILGUN_ENV, MAILGUN_REGION: "eu" })).toBe(
+      "https://api.eu.mailgun.net/v3/mg.example.com/messages",
+    );
+  });
 });
 
 describe("readMailEnv", () => {
@@ -161,6 +257,10 @@ describe("readMailEnv", () => {
       GMAIL_CLIENT_ID: "gci",
       GMAIL_CLIENT_SECRET: "gcs",
       GMAIL_REFRESH_TOKEN: "grt",
+      MAILGUN_API_KEY: "mgk",
+      MAILGUN_DOMAIN: "mgd",
+      MAILGUN_FROM: "mgf",
+      MAILGUN_REGION: "eu",
       UNRELATED_VAR: "ignore-me",
     } as unknown as NodeJS.ProcessEnv;
 
@@ -175,6 +275,10 @@ describe("readMailEnv", () => {
       GMAIL_CLIENT_ID: "gci",
       GMAIL_CLIENT_SECRET: "gcs",
       GMAIL_REFRESH_TOKEN: "grt",
+      MAILGUN_API_KEY: "mgk",
+      MAILGUN_DOMAIN: "mgd",
+      MAILGUN_FROM: "mgf",
+      MAILGUN_REGION: "eu",
     });
   });
 });
