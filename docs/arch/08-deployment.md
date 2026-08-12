@@ -26,8 +26,10 @@ Managed Postgres — **Neon** or **Vercel Postgres** (either is compatible with 
 | `DIRECT_DATABASE_URL` | Direct (non-pooled) connection string, if the provider requires a separate one for migrations |
 | `ADMIN_EMAIL` | The one email address allowed to authenticate — see [[03-auth]] |
 | `BETTER_AUTH_SECRET` | Session signing secret |
-| `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` | Outbound mail for magic link / OTP emails |
-| `SMTP_FROM` | From address for auth emails |
+| `MAIL_TRANSPORT` | `smtp` (default) or `gmail-oauth` — selects the outbound mail transport, see [[adr/015-gmail-xoauth2-transport\|ADR-015]] |
+| `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` | Outbound mail for magic link / OTP emails, when `MAIL_TRANSPORT=smtp` |
+| `SMTP_FROM` | From address for auth emails, when `MAIL_TRANSPORT=smtp` |
+| `GMAIL_USER` / `GMAIL_CLIENT_ID` / `GMAIL_CLIENT_SECRET` / `GMAIL_REFRESH_TOKEN` | Gmail XOAUTH2 credentials, read only when `MAIL_TRANSPORT=gmail-oauth` — see [[../impl/09-deployment|impl: deployment]] § Gmail XOAUTH2 |
 
 Exact naming may shift slightly once Better Auth and the chosen Postgres provider's own conventions are wired up in implementation — treat this table as the intent, not a literal contract.
 

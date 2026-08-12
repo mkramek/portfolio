@@ -42,7 +42,7 @@ middleware.ts
 
 ## Email delivery for magic link / OTP
 
-Both magic-link and OTP emails are sent over raw SMTP (Nodemailer), using HTML compiled from MJML templates at send time (or build time, if templates are static enough to precompile — implementation's call). No third-party transactional-email API is used; SMTP credentials are supplied via environment variables (see [[08-deployment]]).
+Both magic-link and OTP emails are sent via Nodemailer, using HTML compiled from MJML templates at send time (or build time, if templates are static enough to precompile — implementation's call). No third-party transactional-email API is used. `MAIL_TRANSPORT` selects between two nodemailer transports, both configured via environment variables (see [[08-deployment]]): plain SMTP (the default — `SMTP_HOST`/`SMTP_PORT`/`SMTP_USER`/`SMTP_PASS`/`SMTP_FROM`), or Gmail over XOAUTH2 (`GMAIL_USER`/`GMAIL_CLIENT_ID`/`GMAIL_CLIENT_SECRET`/`GMAIL_REFRESH_TOKEN`) — see [[adr/015-gmail-xoauth2-transport|ADR-015]].
 
 ## Why this is safe enough for a single-owner app
 
