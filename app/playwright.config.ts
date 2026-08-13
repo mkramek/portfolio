@@ -28,6 +28,9 @@ export default defineConfig({
       BETTER_AUTH_URL: BASE_URL,
       AUTH_ORIGIN: BASE_URL,
       AUTH_RPID: "localhost",
+      // Pinned so the suite always goes through Mailpit, regardless of what
+      // app/.env sets for the developer's own runs.
+      MAIL_TRANSPORT: "smtp",
       SMTP_HOST: "127.0.0.1",
       SMTP_PORT: "1025",
       SMTP_FROM: "CV Admin <admin@cv.dev>",

@@ -12,6 +12,8 @@
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "format": "biome format --write .",
+    "mail:test": "bun scripts/send-test-email.mjs",
+    "mail:gmail-oauth": "bun scripts/gmail-oauth.mjs",
     "postinstall": "prisma generate"
   },
   "dependencies": {
