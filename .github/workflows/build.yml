@@ -110,3 +110,44 @@ jobs:
           subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
+
+      # Same image name, `-migrate` tag suffix. This publishes the `builder` stage —
+      # the only one with the Prisma CLI and prisma/migrations/ available (the
+      # `runner` stage above is a stripped Next.js standalone build, per
+      # app/Dockerfile) — so `prisma migrate deploy` can run as a pull-only step on
+      # a deploy host that only has a Compose file, not this repo checked out.
+      - id: meta-migrate
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest-migrate
+            type=raw,value=${{ steps.vars.outputs.version }}-migrate
+            type=raw,value=${{ steps.vars.outputs.majorminor }}-migrate
+            type=raw,value=sha-${{ steps.vars.outputs.short_sha }}-migrate
+          labels: |
+            org.opencontainers.image.version=${{ steps.vars.outputs.version }}
+            org.opencontainers.image.revision=${{ steps.vars.outputs.sha }}
+
+      - id: push-migrate
+        uses: docker/build-push-action@v7
+        with:
+          context: app
+          file: app/Dockerfile
+          target: builder
+          push: true
+          tags: ${{ steps.meta-migrate.outputs.tags }}
+          labels: ${{ steps.meta-migrate.outputs.labels }}
+          # Same cache scope as the runner build above: `deps`/`builder` layers are
+          # identical between the two targets, so this reuses rather than
+          # duplicates that work.
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: false
+
+      - name: Attest build provenance (migrate image)
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          subject-digest: ${{ steps.push-migrate.outputs.digest }}
+          push-to-registry: true
