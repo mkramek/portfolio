@@ -80,6 +80,34 @@ test("delete a role through the UI and see it gone from the portfolio", async ({
   await expect(page.getByRole("heading", { name: "Coming soon" })).toBeVisible();
 });
 
+test("role detail level reveals matching fields and preserves values across switches", async ({
+  page,
+}) => {
+  await seedSetupBase();
+
+  await page.goto("/en/admin/experience");
+  await page.getByRole("button", { name: "+ NEW ENTRY" }).click();
+  await page.fill("#field-company", "DepthCo");
+  await page.fill("#field-title", "Engineer");
+
+  await expect(page.locator("#field-bullets")).toHaveCount(0);
+  await expect(page.locator("#field-caseStudy\\.context")).toHaveCount(0);
+
+  await page.selectOption("#field-depth", "extended");
+  await expect(page.locator("#field-bullets")).toBeVisible();
+  await expect(page.locator("#field-caseStudy\\.context")).toHaveCount(0);
+  await page.fill("#field-bullets", "Shipped the thing");
+
+  await page.selectOption("#field-depth", "simple");
+  await expect(page.locator("#field-bullets")).toHaveCount(0);
+
+  await page.selectOption("#field-depth", "extended");
+  await expect(page.locator("#field-bullets")).toHaveValue("Shipped the thing");
+
+  await page.selectOption("#field-depth", "advanced");
+  await expect(page.locator("#field-caseStudy\\.context")).toBeVisible();
+});
+
 async function expectOrder(page: import("@playwright/test").Page, first: string, second: string) {
   await expect(page.locator("#experience").getByText(first)).toBeVisible();
   const firstY = await yOf(page.locator("#experience").getByText(first));

@@ -57,15 +57,17 @@
   --font-sans: var(--sans);
 }
 
-body {
-  background: var(--bg);
-  color: var(--fg);
-  font-family: var(--mono);
-  -webkit-font-smoothing: antialiased;
-}
+@layer base {
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--mono);
+    -webkit-font-smoothing: antialiased;
+  }
 
-a {
-  color: var(--ac);
-  text-decoration: none;
-  border-bottom: 1px solid var(--acSoft);
+  a {
+    color: var(--ac);
+    text-decoration: none;
+    border-bottom: 1px solid var(--acSoft);
+  }
 }

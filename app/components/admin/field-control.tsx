@@ -1,16 +1,7 @@
 "use client";
 
-import {
-  BoolInput,
-  Field,
-  LinesInput,
-  PairsInput,
-  SelectInput,
-  TagsInput,
-  TextArea,
-  TextInput,
-} from "@/components/admin/fields";
-import { type FieldSpec, parsePairs } from "@/lib/admin/fields";
+import { BoolInput, Field, SelectInput, TextArea, TextInput } from "@/components/admin/fields";
+import type { FieldSpec } from "@/lib/admin/fields";
 
 export function FieldControl({
   field,
@@ -50,58 +41,16 @@ export function FieldControl({
     );
   }
 
-  if (field.type === "lines") {
+  if (field.type === "area" || field.type === "lines" || field.type === "pairs") {
     return (
       <Field label={field.label} id={id} hint={field.hint}>
-        <LinesInput
+        <TextArea
           id={id}
-          value={raw ? raw.split("\n") : []}
-          onChange={(lines) => onRaw(lines.join("\n"))}
+          value={raw}
+          onChange={onRaw}
           rows={field.rows}
+          placeholder={field.type === "area" ? field.hint : undefined}
         />
-      </Field>
-    );
-  }
-
-  if (field.type === "pairs") {
-    return (
-      <Field label={field.label} id={id} hint={field.hint}>
-        <PairsInput
-          id={id}
-          value={raw ? parsePairs(raw) : []}
-          onChange={(pairs) =>
-            onRaw(pairs.map((pair) => `${pair.value} | ${pair.label}`).join("\n"))
-          }
-          rows={field.rows}
-        />
-      </Field>
-    );
-  }
-
-  if (field.type === "tags") {
-    return (
-      <Field label={field.label} id={id} hint={field.hint}>
-        <TagsInput
-          id={id}
-          value={
-            raw
-              ? raw
-                  .split(",")
-                  .map((tag) => tag.trim())
-                  .filter(Boolean)
-              : []
-          }
-          onChange={(tags) => onRaw(tags.join(", "))}
-          placeholder={field.hint}
-        />
-      </Field>
-    );
-  }
-
-  if (field.type === "area") {
-    return (
-      <Field label={field.label} id={id} hint={field.hint}>
-        <TextArea id={id} value={raw} onChange={onRaw} rows={field.rows} placeholder={field.hint} />
       </Field>
     );
   }

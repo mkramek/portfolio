@@ -29,7 +29,7 @@ Base UI is headless — it supplies behavior/accessibility, not appearance. Each
 
 | Prototype pattern | Base UI primitive | Notes |
 |---|---|---|
-| Segmented tab nav (`PORTFOLIO / CV / ADMIN`, admin's content tabs) | `Tabs` | |
+| Segmented tab nav (admin's content tabs) | `Tabs` | |
 | Entry editor (slide-in panel, split or stacked) | `Dialog` (stacked variant) or an inline panel region (split variant) | Which one renders is still a `Theme.admin` choice, same as the prototype |
 | Destructive confirm ("Delete this entry?", "Reset everything?") | `AlertDialog` | Two-button (confirm/cancel), matches prototype's confirm modal |
 | Depth / layout-variant pill selectors | `Toggle Group` | Matches the prototype's `[data-seg]` pill-button look |

@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import type { FieldSpec } from "@/lib/admin/fields";
+import { type FieldSpec, visibleFields } from "@/lib/admin/fields";
 import type { AdminDictionary } from "@/lib/i18n/dictionaries/en/admin";
 import { FieldControl } from "./field-control";
 
@@ -38,7 +38,7 @@ export function EntryEditor({
         </Button>
       </div>
       <div className="grid gap-3 p-4">
-        {fields.map((field) => (
+        {visibleFields(fields, raw).map((field) => (
           <FieldControl
             key={field.key}
             field={field}

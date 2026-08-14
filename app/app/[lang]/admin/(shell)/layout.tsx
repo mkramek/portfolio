@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { lang } from "next/root-params";
 import type { ReactNode } from "react";
 import { AdminNav } from "@/components/admin/admin-nav";
@@ -53,26 +52,6 @@ export default async function AdminShellLayout({ children }: { children: ReactNo
             {dict.shell.contentAdmin}
           </span>
           <div className="flex-1" />
-          <nav className="flex gap-0.5 border border-line p-0.5">
-            <Link
-              href={`/${locale}`}
-              className="border-0 px-2.5 py-1.5 text-[10.5px] font-medium tracking-[.1em] text-dim hover:text-fg"
-            >
-              {dict.shell.portfolio}
-            </Link>
-            <Link
-              href={`/${locale}/admin/cv`}
-              className="border-0 px-2.5 py-1.5 text-[10.5px] font-medium tracking-[.1em] text-dim hover:text-fg"
-            >
-              {dict.shell.cv}
-            </Link>
-            <Link
-              href={`/${locale}/admin`}
-              className="border-0 bg-ac px-2.5 py-1.5 text-[10.5px] font-medium tracking-[.1em] text-acfg"
-            >
-              {dict.shell.admin}
-            </Link>
-          </nav>
           <ModeToggle mode={theme.mode} />
         </div>
       </header>

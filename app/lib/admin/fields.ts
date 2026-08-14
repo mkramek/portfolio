@@ -8,6 +8,13 @@ export type FieldSpec = {
   hint?: string;
   boolLabel?: string;
   options?: { value: string; label: string }[];
+  /**
+   * Renders this field only when sibling field `key`'s raw value is one of `values`.
+   * Display gate only — entity-view.tsx still seeds and saves the field, so hiding
+   * never discards what's already typed. Declarative (not a predicate) because
+   * FieldSpec[] crosses the Server -> Client boundary as props.
+   */
+  dependsOn?: { key: string; values: string[] };
 };
 
 export const ROLE_FIELDS: FieldSpec[] = [
@@ -29,12 +36,50 @@ export const ROLE_FIELDS: FieldSpec[] = [
     hint: "simple = one-liner · extended = metrics, bullets, stack · advanced = + case study",
   },
   { key: "oneLiner", label: "ONE-LINER", type: "area", rows: 2 },
-  { key: "bullets", label: "BULLETS", type: "lines", rows: 6, hint: "One per line" },
-  { key: "metrics", label: "METRICS", type: "pairs", rows: 4, hint: "One per line: value | label" },
-  { key: "stack", label: "STACK", type: "tags", hint: "Comma separated" },
-  { key: "caseStudy.context", label: "CASE — CONTEXT", type: "area", rows: 3 },
-  { key: "caseStudy.approach", label: "CASE — APPROACH", type: "area", rows: 3 },
-  { key: "caseStudy.impact", label: "CASE — IMPACT", type: "area", rows: 3 },
+  {
+    key: "bullets",
+    label: "BULLETS",
+    type: "lines",
+    rows: 6,
+    hint: "One per line",
+    dependsOn: { key: "depth", values: ["extended", "advanced"] },
+  },
+  {
+    key: "metrics",
+    label: "METRICS",
+    type: "pairs",
+    rows: 4,
+    hint: "One per line: value | label",
+    dependsOn: { key: "depth", values: ["extended", "advanced"] },
+  },
+  {
+    key: "stack",
+    label: "STACK",
+    type: "tags",
+    hint: "Comma separated",
+    dependsOn: { key: "depth", values: ["extended", "advanced"] },
+  },
+  {
+    key: "caseStudy.context",
+    label: "CASE — CONTEXT",
+    type: "area",
+    rows: 3,
+    dependsOn: { key: "depth", values: ["advanced"] },
+  },
+  {
+    key: "caseStudy.approach",
+    label: "CASE — APPROACH",
+    type: "area",
+    rows: 3,
+    dependsOn: { key: "depth", values: ["advanced"] },
+  },
+  {
+    key: "caseStudy.impact",
+    label: "CASE — IMPACT",
+    type: "area",
+    rows: 3,
+    dependsOn: { key: "depth", values: ["advanced"] },
+  },
   { key: "includeInCv", label: "CV", type: "bool", boolLabel: "Include in CV export" },
 ];
 
@@ -98,6 +143,13 @@ export const EDUCATION_FIELDS: FieldSpec[] = [
   { key: "degree", label: "DEGREE", type: "text" },
   { key: "detail", label: "DETAIL", type: "area", rows: 3 },
 ];
+
+/** Filters out fields whose `dependsOn` sibling value isn't currently satisfied. */
+export function visibleFields(fields: FieldSpec[], raw: Record<string, string>): FieldSpec[] {
+  return fields.filter(
+    (field) => !field.dependsOn || field.dependsOn.values.includes(raw[field.dependsOn.key] ?? ""),
+  );
+}
 
 /**
  * Applies dictionary label/hint/option overrides onto a structural FieldSpec list.
@@ -170,6 +222,20 @@ export function toRaw(field: FieldSpec, row?: EntityRow | null): string {
   return value == null ? "" : String(value);
 }
 
+export function parseLines(raw: string): string[] {
+  return raw
+    .split("\n")
+    .map((x) => x.trim())
+    .filter(Boolean);
+}
+
+export function parseTags(raw: string): string[] {
+  return raw
+    .split(",")
+    .map((x) => x.trim())
+    .filter(Boolean);
+}
+
 export function parsePairs(raw: string): { value: string; label: string }[] {
   return raw
     .split("\n")
@@ -185,18 +251,8 @@ export function parsePairs(raw: string): { value: string; label: string }[] {
 
 export function fromRaw(field: FieldSpec, raw: string | undefined): unknown {
   const value = raw ?? "";
-  if (field.type === "lines") {
-    return value
-      .split("\n")
-      .map((x) => x.trim())
-      .filter(Boolean);
-  }
-  if (field.type === "tags") {
-    return value
-      .split(",")
-      .map((x) => x.trim())
-      .filter(Boolean);
-  }
+  if (field.type === "lines") return parseLines(value);
+  if (field.type === "tags") return parseTags(value);
   if (field.type === "pairs") return parsePairs(value);
   if (field.type === "bool") return value === "1";
   return value;

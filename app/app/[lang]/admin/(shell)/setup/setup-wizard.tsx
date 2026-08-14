@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type ReactNode, useState } from "react";
-import { Field, SelectInput, TagsInput, TextArea, TextInput } from "@/components/admin/fields";
+import { Field, SelectInput, TextArea, TextInput } from "@/components/admin/fields";
 import { Button } from "@/components/ui/button";
+import { parseLines, parsePairs, parseTags } from "@/lib/admin/fields";
 import type { AdminDictionary } from "@/lib/i18n/dictionaries/en/admin";
 import { useLocale } from "@/lib/i18n/use-locale";
 import type { Profile } from "@/lib/schemas/profile";
@@ -244,6 +245,21 @@ function ProfileStep({
   );
 }
 
+type RoleDraft = {
+  company: string;
+  title: string;
+  start: string;
+  end: string;
+  depth: Role["depth"];
+  oneLiner: string;
+  bullets: string;
+  metrics: string;
+  stack: string;
+  caseContext: string;
+  caseApproach: string;
+  caseImpact: string;
+};
+
 function RoleStep({
   initial,
   onSave,
@@ -255,21 +271,57 @@ function RoleStep({
   busy: boolean;
   dict: AdminDictionary;
 }) {
-  const [form, setForm] = useState(initial);
-  const set = (key: keyof Role) => (value: string) => setForm((f) => ({ ...f, [key]: value }));
+  const [form, setForm] = useState<RoleDraft>({
+    company: initial.company,
+    title: initial.title,
+    start: initial.start,
+    end: initial.end,
+    depth: initial.depth,
+    oneLiner: initial.oneLiner,
+    bullets: "",
+    metrics: "",
+    stack: "",
+    caseContext: "",
+    caseApproach: "",
+    caseImpact: "",
+  });
+  const set = (key: keyof RoleDraft) => (value: string) => setForm((f) => ({ ...f, [key]: value }));
   const f = dict.fields;
   const depthOptions = [
     { value: "simple", label: dict.setup.depthOptions.simple },
     { value: "extended", label: dict.setup.depthOptions.extended },
     { value: "advanced", label: dict.setup.depthOptions.advanced },
   ];
+  const extended = form.depth !== "simple";
+  const advanced = form.depth === "advanced";
+
+  function submit() {
+    onSave({
+      ...initial,
+      company: form.company,
+      title: form.title,
+      start: form.start,
+      end: form.end,
+      depth: form.depth,
+      oneLiner: form.oneLiner,
+      bullets: parseLines(form.bullets),
+      metrics: parsePairs(form.metrics),
+      stack: parseTags(form.stack),
+      caseStudy: {
+        context: form.caseContext,
+        approach: form.caseApproach,
+        impact: form.caseImpact,
+      },
+    });
+  }
+
   return (
     <StepShell
       title={dict.setup.roleStepTitle}
       blurb={dict.setup.roleStepBlurb}
       busy={busy}
       submitLabel={dict.setup.saveRole}
-      onSubmit={() => onSave(form)}
+      onSubmit={submit}
     >
       <Field label={f["role.company"]?.label ?? "COMPANY"} id="role-company">
         <TextInput id="role-company" value={form.company} onChange={set("company")} />
@@ -283,17 +335,76 @@ function RoleStep({
       <Field label={f["role.end"]?.label ?? "END"} id="role-end" hint={f["role.end"]?.hint}>
         <TextInput id="role-end" value={form.end} onChange={set("end")} />
       </Field>
-      <Field label={f["role.oneLiner"]?.label ?? "ONE-LINER"} id="role-oneliner">
-        <TextArea id="role-oneliner" value={form.oneLiner} onChange={set("oneLiner")} rows={2} />
-      </Field>
       <Field label={f["role.depth"]?.label ?? "DETAIL LEVEL"} id="role-depth">
         <SelectInput
           id="role-depth"
           value={form.depth}
-          onChange={set("depth")}
+          onChange={(v) => setForm((f) => ({ ...f, depth: v as Role["depth"] }))}
           options={depthOptions}
         />
       </Field>
+      <Field label={f["role.oneLiner"]?.label ?? "ONE-LINER"} id="role-oneliner">
+        <TextArea id="role-oneliner" value={form.oneLiner} onChange={set("oneLiner")} rows={2} />
+      </Field>
+      {extended && (
+        <>
+          <Field
+            label={f["role.bullets"]?.label ?? "BULLETS"}
+            id="role-bullets"
+            hint={f["role.bullets"]?.hint}
+          >
+            <TextArea id="role-bullets" value={form.bullets} onChange={set("bullets")} rows={4} />
+          </Field>
+          <Field
+            label={f["role.metrics"]?.label ?? "METRICS"}
+            id="role-metrics"
+            hint={f["role.metrics"]?.hint}
+          >
+            <TextArea id="role-metrics" value={form.metrics} onChange={set("metrics")} rows={3} />
+          </Field>
+          <Field
+            label={f["role.stack"]?.label ?? "STACK"}
+            id="role-stack"
+            hint={f["role.stack"]?.hint}
+          >
+            <TextInput id="role-stack" value={form.stack} onChange={set("stack")} />
+          </Field>
+        </>
+      )}
+      {advanced && (
+        <>
+          <Field
+            label={f["role.caseStudy.context"]?.label ?? "CASE — CONTEXT"}
+            id="role-case-context"
+          >
+            <TextArea
+              id="role-case-context"
+              value={form.caseContext}
+              onChange={set("caseContext")}
+              rows={3}
+            />
+          </Field>
+          <Field
+            label={f["role.caseStudy.approach"]?.label ?? "CASE — APPROACH"}
+            id="role-case-approach"
+          >
+            <TextArea
+              id="role-case-approach"
+              value={form.caseApproach}
+              onChange={set("caseApproach")}
+              rows={3}
+            />
+          </Field>
+          <Field label={f["role.caseStudy.impact"]?.label ?? "CASE — IMPACT"} id="role-case-impact">
+            <TextArea
+              id="role-case-impact"
+              value={form.caseImpact}
+              onChange={set("caseImpact")}
+              rows={3}
+            />
+          </Field>
+        </>
+      )}
     </StepShell>
   );
 }
@@ -309,7 +420,8 @@ function SkillGroupStep({
   busy: boolean;
   dict: AdminDictionary;
 }) {
-  const [form, setForm] = useState(initial);
+  const [group, setGroup] = useState(initial.group);
+  const [itemsRaw, setItemsRaw] = useState(initial.items.join(", "));
   const f = dict.fields;
   return (
     <StepShell
@@ -317,25 +429,17 @@ function SkillGroupStep({
       blurb={dict.setup.skillsStepBlurb}
       busy={busy}
       submitLabel={dict.setup.saveSkills}
-      onSubmit={() => onSave(form)}
+      onSubmit={() => onSave({ ...initial, group, items: parseTags(itemsRaw) })}
     >
       <Field label={f["skillGroup.group"]?.label ?? "GROUP"} id="skill-group">
-        <TextInput
-          id="skill-group"
-          value={form.group}
-          onChange={(v) => setForm((f) => ({ ...f, group: v }))}
-        />
+        <TextInput id="skill-group" value={group} onChange={setGroup} />
       </Field>
       <Field
         label={f["skillGroup.items"]?.label ?? "SKILLS"}
         id="skill-items"
         hint={f["skillGroup.items"]?.hint}
       >
-        <TagsInput
-          id="skill-items"
-          value={form.items}
-          onChange={(v) => setForm((f) => ({ ...f, items: v }))}
-        />
+        <TextInput id="skill-items" value={itemsRaw} onChange={setItemsRaw} />
       </Field>
     </StepShell>
   );
