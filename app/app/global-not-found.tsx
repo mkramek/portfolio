@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 export default function GlobalNotFound() {
   return (
     <html lang={DEFAULT_LOCALE}>
-      <body className="flex min-h-screen flex-col items-center justify-center bg-[#faf9f6] px-6 font-mono text-[#1a1a1a]">
+      <body className="flex min-h-screen flex-col items-center justify-center px-6 font-mono">
         <p className="text-xs uppercase tracking-widest text-[#8a8a8a]">404</p>
         <h1 className="mt-3 text-3xl font-semibold tracking-tight">Not found</h1>
         <p className="mt-4 max-w-md text-center text-sm text-[#8a8a8a]">

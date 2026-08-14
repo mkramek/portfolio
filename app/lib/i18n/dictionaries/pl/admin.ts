@@ -22,9 +22,6 @@ export const pl = {
   },
   shell: {
     contentAdmin: "/ panel treści",
-    portfolio: "PORTFOLIO",
-    cv: "CV",
-    admin: "ADMIN",
     content: "TREŚĆ",
     storedNote: "Zapisane w bazie danych — widoczne na stronie natychmiast.",
     signOut: "WYLOGUJ",

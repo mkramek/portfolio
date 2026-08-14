@@ -52,7 +52,7 @@ export function EntityView({
     const row = rowOf(id);
     const raw: Record<string, string> = {};
     for (const field of config.fields) raw[field.key] = toRaw(field, row);
-    if (!row && config.entity === "roles") raw.depth = "extended";
+    if (!row && config.entity === "roles") raw.depth = "simple";
     setEditing({ id, raw });
     setMessage(null);
   }

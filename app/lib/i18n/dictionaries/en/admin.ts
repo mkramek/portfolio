@@ -40,9 +40,6 @@ export type AdminDictionary = {
   };
   shell: {
     contentAdmin: string;
-    portfolio: string;
-    cv: string;
-    admin: string;
     content: string;
     storedNote: string;
     signOut: string;
@@ -254,9 +251,6 @@ export const en: AdminDictionary = {
   },
   shell: {
     contentAdmin: "/ content admin",
-    portfolio: "PORTFOLIO",
-    cv: "CV",
-    admin: "ADMIN",
     content: "CONTENT",
     storedNote: "Stored in the database — visible immediately on the site.",
     signOut: "SIGN OUT",
